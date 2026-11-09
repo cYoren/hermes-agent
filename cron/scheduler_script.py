@@ -308,7 +308,10 @@ def _is_wsl_bash(bash_path: "str | os.PathLike[str] | None") -> bool:
     """
     if not bash_path:
         return False
-    parts = {p.lower() for p in Path(str(bash_path)).parts}
+    # Split on both separators: Path(...).parts follows the host OS, so a
+    # "C:\\Windows\\System32\\bash.exe" string stays one part on Linux/macOS and
+    # the check would miss the WSL shim there.
+    parts = {p for p in str(bash_path).replace("\\", "/").lower().split("/") if p}
     if "windowsapps" in parts:
         return True
     return "windows" in parts and ("system32" in parts or "sysnative" in parts)
